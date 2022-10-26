@@ -1,45 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-//for list manipulation
-using System.Linq;
-
-//class used to generate a randomly vector2list of connected coordinates
-public class Crawler
-{
-    private Vector2Int origPos; //original position
-    private Vector2Int currPos; //current position
-    private int numSteps; //number of positions travelled (random)
-    private List<Vector2Int> path = new List<Vector2Int>(); //list of coordinates
-
-    //constructor
-    public Crawler(int minSteps, int maxSteps)
-    {
-        origPos = Vector2Int.zero;
-        currPos = origPos;
-        numSteps = Random.Range(minSteps, maxSteps + 1); //random number of steps within range
-    }
-
-    //generates a vector2 coordinate adjacent to currPos
-    public Vector2Int Step()
-    {
-        /* ==========
-        YOUR CODE HERE (Slide 10)
-        ========== */
-
-        return currPos;
-    }
-
-    public List<Vector2Int> Path()
-    {
-        path.Clear();
-        for (int i = 0; i < numSteps; i++)
-        {
-            path.Add(Step());
-        }
-        return path;
-    }
-}
 
 public class RDG : MonoBehaviour
 {
@@ -56,11 +17,28 @@ public class RDG : MonoBehaviour
     //concatenates room coordinates, cleans list by removing duplicate rooms etc.
     public List<Vector2Int> GenCoordList()
     {
-        /* ==========
-        YOUR CODE HERE (Slide 11)
-        ========== */
-
+        roomCoords = new List<Vector2Int>();
+        for(int i = 0; i < numCrawlers; i++){
+            int numSteps = numSteps = Random.Range(minSteps, maxSteps + 1);
+            Vector2Int currPos = Vector2Int.zero;
+            for(int j = 0; j < numSteps; j++){
+                int randDir = Random.Range(0, 2);
+                if(randDir == 0)
+                    currPos += new Vector2Int(0, Random.Range(0, 2) == 0 ? -1 : 1);
+                else
+                    currPos += new Vector2Int(Random.Range(0, 2) == 0 ? -1 : 1, 0);
+                if(currPos != Vector2Int.zero && !hasPos(currPos))
+                    roomCoords.Add(currPos);
+            }
+        }
+        Debug.Log(roomCoords);
         return roomCoords;
+    }
+    private bool hasPos(Vector2Int pos){
+        for(int i = 0; i < roomCoords.Count; i++)
+            if(roomCoords[i] == pos)
+                return true;
+        return false;
     }
 
     //converts list into queue, finds the end room

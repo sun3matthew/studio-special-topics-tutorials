@@ -37,15 +37,11 @@ public class CameraController : MonoBehaviour
     private void MoveCam()
     {
         if (currRoom == null)
-        {
-            Debug.Log("current room not set");
             return;
-        }
 
-        /* ==========
-        YOUR CODE HERE (Slide 24)
-        ========== */
-
+        Vector2 pos = new Vector3(currRoom.X * Room.width, currRoom.Y * Room.height, transform.position.z);
+        Debug.Log(pos);
+        transform.position = Vector3.MoveTowards(transform.position, pos, camSpeed * Time.deltaTime);
     }
 
     
