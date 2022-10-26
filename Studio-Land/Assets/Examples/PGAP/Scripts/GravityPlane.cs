@@ -1,0 +1,60 @@
+using UnityEngine;
+
+public class GravityPlane : GravitySource {
+
+	[SerializeField]
+	float gravity = 9.81f;
+    [SerializeField, Min(0f)]
+	float range = 1f;
+
+    void OnDrawGizmos () {
+        Vector3 scale = transform.localScale;
+		scale.y = range;
+		Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, scale);
+		Vector3 size = new Vector3(1f, 0f, 1f);
+		
+		Gizmos.color = Color.yellow;
+		Gizmos.DrawWireCube(Vector3.zero, size);
+        if (range > 0f) {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireCube(Vector3.up, size);
+        }
+	}
+
+	public override Vector3 GetGravity (Vector3 position) {
+		// TODO: Vector3.up is not the correct vector here because it's the global up, not up for the player!
+		//Vector3 up = Vector3.up;//GetComponent<Plane>().normal;
+		Vector3[] points = GetComponent<MeshFilter>().mesh.vertices;
+
+		Matrix4x4 localToWorld = transform.localToWorldMatrix;
+ 
+		for(int i = 0; i < points.Length; ++i)
+			points[i] = localToWorld.MultiplyPoint3x4(points[i]);
+
+		
+		int idx1 = points.Length - 1;
+		int idx2 = points.Length/2;
+		int idx3 = 0;
+		Plane plane = new Plane(points[idx1], points[idx2], points[idx3]);
+		Vector3 up = plane.normal;
+		Debug.Log(up);
+
+
+		float distance = Vector3.Dot(up, position - transform.position);
+
+		// TODO: Return 0 (a 0-vector) if the distance from the player to the plane is greater than the plane's range
+		if (distance > range) 
+			return Vector3.zero;
+		
+		// Gravity should be negative (downward), so inverse the inputted gravity
+		float g = gravity;
+
+		// TODO: Apply the plane's gravity if the distance is positive and within range of the plane
+		// BONUS: Make the gravity weaker when the player is further away (but still within range)
+		if (distance > 0 && distance < range)
+			g *= 1f - (range - distance);
+
+		// TODO: Apply the gravity scalar to the local up vector by multiplying
+		return up * g;
+	}
+}
