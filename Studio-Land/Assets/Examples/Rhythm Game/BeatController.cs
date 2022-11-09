@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class BeatController : MonoBehaviour
 {
+    public AudioClip audioClip;
+
     /* Predetermined, based on the song and the created beatmap */
     [Header("Song Information")]
     [Tooltip("The song BPM")]
@@ -55,16 +57,13 @@ public class BeatController : MonoBehaviour
 
     void Awake()
     {
-        /** TODO #1
-         * Implement the setup for tracking the two units of time,
-         *      as well as setting up other constants as needed
-         * If you're not sure where to start,
-         *      check out the "Debug Fields" above,
-         * and see which ones are calculated on load
-         * Remember to keep track of your units!
-         */
+        beatsPerSecond = bpm / 60f;
+        secondsPerBeat = 1 / beatsPerSecond;
+        songStartOffset = secondsPerBeat * songStartOffset;
 
-        /* END TODO */
+        startTime = (float)AudioSettings.dspTime + songStartOffsetInSeconds;
+        endTime += songStartOffset;
+
 
         SetBeatmap();
         debugClock = 1;
@@ -80,28 +79,11 @@ public class BeatController : MonoBehaviour
 
     void Update()
     {
-        /** TODO #2
-         * Update the song position... again, look at the fields and see what's not implemented yet
-         */
-
-        songPosition = float.NaN;
-        /* END TODO */
+        songPosition = (float)AudioSettings.dspTime - startTime;
+        songPositionInBeats = beatsPerSecond * songPosition;
 
         ClearNullNotes();
-        GenerateDebugLine();
-
-        /** TODO #3
-         * Load the notes from the beatmap as needed
-         *
-         * To get you started, you want to check when a note should be hit, 
-         *      and keep in mind it takes some time from the point a note spawns and the point it lands at the fall line
-         *
-         * Look into GameObject.Instantiate,
-         * the C# Queue documentation (if you're not a cs kinda person, the important methods are Peek, Enqueue, and Dequeue),
-         * and a little bit into the implementation of Note.
-         *
-         */
-
+        //GenerateDebugLine();
         float start, middle, end;
         // This can be a while loop too, but since the beatmap as implemented isn't ever going to spawn two notes at once, I left is as an if
         if (beatmap.Count > 0) 
@@ -109,11 +91,13 @@ public class BeatController : MonoBehaviour
             // Gets the start and end time of the next note
             (start, end) = beatmap.Peek();
             middle = (end + start) / 2f;
-
-            /* Enter logic here */
+            //Debug.Log(middle + " " + songPosition);
+            if(middle + Note.fallTime <= songPosition){// line at -2
+                currentlyLiveNotes.Enqueue(GameObject.Instantiate(notePrefab, Note.START_POS, Quaternion.identity).GetComponent<Note>());
+                beatmap.Dequeue();
+            }
         }
 
-        /* END TODO */
 
         minigameController.SetGameScore((float)GameObject.Find("Player").GetComponent<Player>().getScore());
         if (songPosition >= endTime)
@@ -139,8 +123,13 @@ public class BeatController : MonoBehaviour
     private void SetBeatmap()
     {
         beatmap.Clear(); 
+
+
+
         for (float i = 3; i < 31; i ++)
         {
+
+
             beatmap.Enqueue(((i - Note.DEFAULT_LEEWAY) * secondsPerBeat, (i + Note.DEFAULT_LEEWAY) * secondsPerBeat));
         }
     }

@@ -30,18 +30,18 @@ public class Player : MonoBehaviour
     void Update()
     {
         updateText();
+        if(controller.getCurrentlyLiveNotes().Count == 0)
+            return;
+        if(Input.GetKeyDown(KeyCode.A)){
+            Note currNote = controller.getCurrentlyLiveNotes().Peek();
+            float currPos = currNote.transform.position.y;
+            Debug.Log(currPos);
+            if(currPos > -2 - Note.DEFAULT_LEEWAY && currPos < -2 + Note.DEFAULT_LEEWAY){
+                HitNote(currNote);
+            }
+        }
     }
 
-    // Event that is called whenever player presses "Spacebar"
-    public void OnPress(InputValue value)
-    {
-        /** TODO #4
-         * Implement logic for checking if notes are being pressed and scoring
-         * 
-         * To get you started, the easiest way to do this is to check the time when the next note has to be pressed
-         * And compare it to the current time
-         */
-    }
 
     /* Helpers */
     
@@ -52,7 +52,7 @@ public class Player : MonoBehaviour
         combo += 1;
         Destroy(note.gameObject);
         controller.DequeueFrontNote();
-        controller.PlayHit();
+        //controller.PlayHit();
     }
 
     private void updateText()
